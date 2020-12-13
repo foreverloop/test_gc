@@ -41,25 +41,28 @@ dataset_id = "project_id.dataset_name_to_create"
 dataset = bigquery.Dataset(dataset_id)
 
 dataset.location = "EU"
-dataset.description = "test dataset"
+dataset.description = "test_dataset"
 #set expiration etc also if required
 
 dataset_ref = client.create_dataset(dataset, timeout=30)
 
-def to_json(csv_str):
+def row_to_json(csv_str):
 	fields = csv_str.split(',')
 
 	#general pattern to convert
-	json_str = {"column_1":fields[0],
-				"column_2":fields[1]}
+	json_str = {"id":fields[0],
+				"date":fields[1],
+				"val0":fields[2],
+				"val1":fields[3],
+				"val2":fields[4]}
 
 	return json_str
 
 #likely whatever data we're using needs a date and a timestamp
-table_schema = "column_1:STRING,column_2:STRING"
+table_schema = "id:INT64,date:DATE,val0:INT64,val1:INT64,val2:FLOAT64"
 
 (send_data
-	| 'convert to JSON' >> beam.Map(to_json)
+	| 'convert to JSON' >> beam.Map(row_to_json)
 	| 'write to BQ' >> beam.io.writeToBigQuery(
 		output_loc,
 		schema=table_schema,
